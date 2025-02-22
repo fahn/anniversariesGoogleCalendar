@@ -40,6 +40,8 @@
  * - deleteCalendarEvent: Deletes a calendar event from Google Calendar.
  */
 
+var prefixTitle = '🎂 ';
+
 /**
  * Main function to synchronize anniversary events (birthdays and special 
  * events) between Google Contacts and Google Calendar. It retrieves all 
@@ -57,8 +59,12 @@
 function anniversaryEvents() {
   var calendarId = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx@group.calendar.google.com'; // Set your Google Calendar ID here
   var recipientEmail = ''; // Set your E-Mail address here (optional)
+  
 
   var currentYear = new Date().getFullYear();
+
+  // My Custom Function, if something happends, when you can delete all the events.
+  //deleteAllCalendarEvents(calendarId, currentYear);
 
   var contactEvents = getAllContactsEvents();
   var calendarEvents = getAllCalendarEvents(calendarId, currentYear);
@@ -94,6 +100,30 @@ function anniversaryEvents() {
   }
 }
 
+
+/**
+ * Delete all Calender Events
+ */
+function deleteAllCalendarEvents(calendarId, currentYear) {
+  var calendar = CalendarApp.getCalendarById(calendarId);
+  if (!calendar) {
+    Logger.log("Kalender nicht gefunden!");
+    return;
+  }
+
+  // Alle Termine für das aktuelle Jahr abrufen
+  var startDate = new Date(currentYear, 0, 1); // 1. Januar des Jahres
+  var endDate = new Date(currentYear + 1, 0, 1); // 1. Januar des nächsten Jahres
+  var events = calendar.getEvents(startDate, endDate);
+
+  // Alle Events durchlaufen und löschen
+  for (var i = 0; i < events.length; i++) {
+    events[i].deleteEvent();
+  }
+
+  Logger.log(events.length + " Termine wurden gelöscht.");
+}
+
 /**
  * Retrieves all anniversary-related events (birthdays and other 
  * significant dates) from Google Contacts.
@@ -127,7 +157,7 @@ function getAllContactsEvents() {
                 var year = birthday.date.year || currentYear;
                 var eventDate = new Date(year, birthday.date.month - 1, birthday.date.day)
                 contactsEvents.push({
-                  title: "Birthday: " + name,
+                  title: prefixTitle + name,
                   date: eventDate,
                   contactId: contact.resourceName,
                 });
